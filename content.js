@@ -6,6 +6,7 @@ function createPanel() {
   panel.innerHTML = `
     <div id="ai-edit-header">AI网页编辑器 <span id="ai-edit-close">✖</span></div>
     <button id="ai-edit-select">选择节点</button>
+    <button id="ai-edit-delete">删除节点</button>
     <div id="ai-edit-selected">未选择节点</div>
     <textarea id="ai-edit-input" placeholder="请输入修改意见"></textarea>
     <button id="ai-edit-submit">提交</button>
@@ -44,6 +45,27 @@ function createPanel() {
     document.addEventListener('mouseover', highlightNode, true);
     document.addEventListener('mouseout', unhighlightNode, true);
     document.addEventListener('click', selectNode, true);
+  };
+
+  // 删除节点
+  document.getElementById('ai-edit-delete').onclick = () => {
+    const node = window._aiEditNode;
+    if (!node) {
+      alert('请先选择节点');
+      return;
+    }
+    if (node.tagName === 'HTML' || node.tagName === 'BODY') {
+      document.getElementById('ai-edit-result').innerText = '不能删除HTML或BODY节点';
+      return;
+    }
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
+      window._aiEditNode = null;
+      document.getElementById('ai-edit-selected').innerText = '未选择节点';
+      document.getElementById('ai-edit-result').innerText = '节点已删除';
+    } else {
+      document.getElementById('ai-edit-result').innerText = '无法删除该节点';
+    }
   };
 
   // 提交
@@ -110,6 +132,101 @@ function createPanel() {
       document.getElementById('ai-edit-result').innerText = 'AI请求失败: ' + err.message;
     }
   };
+
+  const style = document.createElement('style');
+  style.innerHTML = `
+    #ai-edit-panel {
+      position: fixed;
+      top: 100px;
+      right: 40px;
+      width: 340px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      z-index: 999999;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      border: 1px solid #e0e0e0;
+      padding-bottom: 16px;
+      transition: box-shadow 0.2s;
+    }
+    #ai-edit-header {
+      background: linear-gradient(90deg, #4f8cff 0%, #6fc3ff 100%);
+      color: #fff;
+      padding: 14px 16px;
+      border-radius: 12px 12px 0 0;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    #ai-edit-close {
+      cursor: pointer;
+      font-size: 18px;
+      color: #fff;
+      transition: color 0.2s;
+    }
+    #ai-edit-close:hover {
+      color: #ff4d4f;
+    }
+    #ai-edit-select, #ai-edit-delete, #ai-edit-submit {
+      background: #4f8cff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      margin: 12px 8px 0 16px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #ai-edit-select:hover, #ai-edit-delete:hover, #ai-edit-submit:hover {
+      background: #357ae8;
+    }
+    #ai-edit-selected {
+      margin: 10px 16px 0 16px;
+      color: #888;
+      font-size: 14px;
+    }
+    #ai-edit-input {
+      width: calc(100% - 32px);
+      margin: 12px 16px 0 16px;
+      min-height: 60px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      padding: 8px;
+      font-size: 15px;
+      resize: vertical;
+      outline: none;
+      transition: border 0.2s;
+    }
+    #ai-edit-input:focus {
+      border: 1.5px solid #4f8cff;
+    }
+    #ai-edit-result {
+      margin: 14px 16px 0 16px;
+      min-height: 22px;
+      color: #4f8cff;
+      font-size: 15px;
+      word-break: break-all;
+    }
+    #ai-edit-delete {
+      background: #ff4d4f;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      margin: 12px 8px 0 16px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #ai-edit-delete:hover {
+      background: #d9363e;
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 // 高亮节点
@@ -137,6 +254,7 @@ function selectNode(e) {
   window._aiEditNode = e.target;
   e.target.style.outline = '2px solid red';
   document.getElementById('ai-edit-selected').innerText = e.target.tagName;
+  document.getElementById('ai-edit-input').value = '';
   setTimeout(() => { e.target.style.outline = ''; }, 1000);
 }
 
