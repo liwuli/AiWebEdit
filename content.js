@@ -124,7 +124,15 @@ function createPanel() {
       const data = await res.json();
       let aiContent = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
       if (!aiContent) throw new Error('AI无返回内容');
-      aiContent = aiContent && aiContent.replace(/```html|```/gi, '').trim();
+      // 尝试去除markdown代码块标记
+      aiContent = aiContent.replace(/```html|```/gi, '').trim();
+
+      // 进一步清理，找到第一个<字符作为html的开始
+      const firstLtIndex = aiContent.indexOf('<');
+      if (firstLtIndex > -1) {
+        aiContent = aiContent.substring(firstLtIndex);
+      }
+
       // 尝试提取html和css
       let htmlResult = aiContent;
       let cssResult = '';
