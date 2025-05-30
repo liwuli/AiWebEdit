@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "AI网页编辑器",
+  "version": "1.0",
+  "description": "选择并编辑网页节点，AI辅助生成新样式和代码。",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "AI网页编辑器"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ]
+} 
