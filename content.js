@@ -156,7 +156,7 @@ function createPanel() {
     const configPanel = document.createElement('div');
     configPanel.id = 'ai-edit-config-panel';
     configPanel.innerHTML = `
-      <div style="font-weight:bold;font-size:18px;margin-bottom:18px;text-align:center;letter-spacing:2px;">AI编辑器配置</div>
+      <div style="font-weight:bold;font-size:18px;margin-bottom:18px;text-align:center;letter-spacing:2px;">Ai模型配置</div>
       <div style="margin-bottom:16px;">
         <label style='font-size:14px;color:#333;margin-bottom:4px;display:block;'>API Key</label>
         <input id="ai-edit-config-key" type="text" style="width:100%;margin-top:2px;padding:8px 10px;border-radius:6px;border:1px solid #e0e0e0;font-size:15px;outline:none;transition:border 0.2s;" value="${localStorage.getItem('ai-edit-key')||''}">
