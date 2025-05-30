@@ -55,6 +55,7 @@ function createPanel() {
   // 选择节点
   document.getElementById('ai-edit-select').onclick = () => {
     document.body.style.cursor = 'crosshair';
+    document.body.classList.add('ai-edit-selecting');
     document.addEventListener('mouseover', highlightNode, true);
     document.addEventListener('mouseout', unhighlightNode, true);
     document.addEventListener('click', selectNode, true);
@@ -304,19 +305,35 @@ function createPanel() {
     }
   `;
   document.head.appendChild(style);
+
+  const selectModeStyle = document.createElement('style');
+  selectModeStyle.innerHTML = `
+    .ai-edit-selecting * {
+      transition: none !important;
+      transform: none !important;
+      animation: none !important;
+    }
+  `;
+  document.head.appendChild(selectModeStyle);
 }
 
 // 高亮节点
 function highlightNode(e) {
   if (!e.target.closest('#ai-edit-panel')) {
     e.target.__oldOutline = e.target.style.outline;
+    e.target.__oldZIndex = e.target.style.zIndex;
     e.target.style.outline = '2px solid #4f8cff';
+    e.target.style.zIndex = 3;
   }
 }
 function unhighlightNode(e) {
   if (!e.target.closest('#ai-edit-panel') && e.target.__oldOutline !== undefined) {
     e.target.style.outline = e.target.__oldOutline;
     delete e.target.__oldOutline;
+    if (e.target.__oldZIndex !== undefined) {
+      e.target.style.zIndex = e.target.__oldZIndex;
+      delete e.target.__oldZIndex;
+    }
   }
 }
 
@@ -325,6 +342,7 @@ function selectNode(e) {
   e.preventDefault();
   e.stopPropagation();
   document.body.style.cursor = '';
+  document.body.classList.remove('ai-edit-selecting');
   document.removeEventListener('mouseover', highlightNode, true);
   document.removeEventListener('mouseout', unhighlightNode, true);
   document.removeEventListener('click', selectNode, true);
