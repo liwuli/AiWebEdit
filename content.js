@@ -316,33 +316,50 @@ function createPanel() {
 
   const selectModeStyle = document.createElement('style');
   selectModeStyle.innerHTML = `
+    /* 选择模式尽量不影响页面布局与渲染，仅做最小化干预 */
     .ai-edit-selecting * {
-      transition: none !important;
-      transform: none !important;
-      animation: none !important;
+      /* 不禁用 transform/animation，避免布局抖动 */
     }
   `;
   document.head.appendChild(selectModeStyle);
+
+  // 创建高亮遮罩层，避免直接修改目标元素样式导致布局变化
+  if (!document.getElementById('ai-edit-hover-overlay')) {
+    const hoverOverlay = document.createElement('div');
+    hoverOverlay.id = 'ai-edit-hover-overlay';
+    Object.assign(hoverOverlay.style, {
+      position: 'fixed',
+      border: '2px solid #4f8cff',
+      boxSizing: 'border-box',
+      pointerEvents: 'none',
+      zIndex: '999998',
+      display: 'none',
+      background: 'rgba(79, 140, 255, 0.08)',
+      borderRadius: '4px'
+    });
+    document.body.appendChild(hoverOverlay);
+    window._aiEditHoverOverlay = hoverOverlay;
+  }
 }
 
 // 高亮节点
 function highlightNode(e) {
-  if (!e.target.closest('#ai-edit-panel')) {
-    e.target.__oldOutline = e.target.style.outline;
-    e.target.__oldZIndex = e.target.style.zIndex;
-    e.target.style.outline = '2px solid #4f8cff';
-    e.target.style.zIndex = 3;
-  }
+  if (e.target.closest('#ai-edit-panel')) return;
+  const overlay = window._aiEditHoverOverlay || document.getElementById('ai-edit-hover-overlay');
+  if (!overlay) return;
+  const rect = e.target.getBoundingClientRect();
+  overlay.style.left = rect.left + 'px';
+  overlay.style.top = rect.top + 'px';
+  overlay.style.width = Math.max(0, rect.width) + 'px';
+  overlay.style.height = Math.max(0, rect.height) + 'px';
+  overlay.style.border = '2px solid #4f8cff';
+  overlay.style.display = 'block';
 }
 function unhighlightNode(e) {
-  if (!e.target.closest('#ai-edit-panel') && e.target.__oldOutline !== undefined) {
-    e.target.style.outline = e.target.__oldOutline;
-    delete e.target.__oldOutline;
-    if (e.target.__oldZIndex !== undefined) {
-      e.target.style.zIndex = e.target.__oldZIndex;
-      delete e.target.__oldZIndex;
-    }
-  }
+  if (e.target.closest('#ai-edit-panel')) return;
+  const overlay = window._aiEditHoverOverlay || document.getElementById('ai-edit-hover-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
 }
 
 // 节点选择逻辑
@@ -355,10 +372,20 @@ function selectNode(e) {
   document.removeEventListener('mouseout', unhighlightNode, true);
   document.removeEventListener('click', selectNode, true);
   window._aiEditNode = e.target;
-  e.target.style.outline = '2px solid red';
+  // 选中时闪烁遮罩层为红色以示确认
+  const overlay = window._aiEditHoverOverlay || document.getElementById('ai-edit-hover-overlay');
+  if (overlay) {
+    const rect = e.target.getBoundingClientRect();
+    overlay.style.left = rect.left + 'px';
+    overlay.style.top = rect.top + 'px';
+    overlay.style.width = Math.max(0, rect.width) + 'px';
+    overlay.style.height = Math.max(0, rect.height) + 'px';
+    overlay.style.border = '2px solid red';
+    overlay.style.display = 'block';
+    setTimeout(() => { if (overlay) overlay.style.display = 'none'; }, 300);
+  }
   document.getElementById('ai-edit-selected').innerText = e.target.tagName;
   document.getElementById('ai-edit-input').value = '';
-  setTimeout(() => { e.target.style.outline = ''; }, 1000);
 }
 
 // 监听插件激活
